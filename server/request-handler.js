@@ -10,8 +10,10 @@ this file and include it in basic-server.js so that it actually works.
 
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
+
 **************************************************************/
 
+var storage = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -40,16 +42,28 @@ var requestHandler = function(request, response) {
   };
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
-  
+  //create results array here
+  headers.results = [];
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
 
-  // .writeHead() writes to the request line and headers of the response,
-  // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  //for POST requests
+  if (request.method === 'POST' && request.url === '/classes/messages') {
+    var message = '';
+    request.on('data', function (data){
+      message+= data;
+      headers.results.push(message);
+      storage.push(message);
+    });
+    // .writeHead() writes to the request line and headers of the response,
+    // which includes the status and all headers.
+    response.writeHead(201, headers)
+  }
+
+
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -58,7 +72,7 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  response.end(JSON.stringify(headers));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
