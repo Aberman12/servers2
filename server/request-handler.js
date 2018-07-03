@@ -11,9 +11,14 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 
-**************************************************************/
 
-var storage = [];
+**************************************************************/
+var storage = {
+  results: [],
+  username: null,
+  message: null //may need to change
+
+}
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -32,7 +37,7 @@ var requestHandler = function(request, response) {
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
   
   // The outgoing status.
-  var statusCode = 200;
+  var statusCode = 404;
   
   var defaultCorsHeaders = {
     'access-control-allow-origin': '*',
@@ -43,25 +48,44 @@ var requestHandler = function(request, response) {
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
   //create results array here
-  headers.results = [];
+  // headers.results = [];
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
 
+  if(request.method === 'OPTION') {
+    response.writeHead(200, headers);
+    response.end();
+  }
+
+  if (request.url !== '/classes/messages') {
+    response.writeHead(statusCode, headers);
+    response.end('404: Not Found');
+  } 
   //for POST requests
   if (request.method === 'POST' && request.url === '/classes/messages') {
     var message = '';
     request.on('data', function (data){
       message+= data;
-      headers.results.push(message);
-      storage.push(message);
+      var parsedMsg = JSON.parse(message);
+      storage.username = parsedMsg.username;
+      storage.message = parsedMsg.text;
+      storage.results.push(message);
+      // console.log('data is', data);
+      // console.log('message is', message)
+      // console.log('parsed?', parsedMsg.username)
+      // storage.username+= data.username
+      response.end(JSON.stringify(storage));
     });
     // .writeHead() writes to the request line and headers of the response,
     // which includes the status and all headers.
     response.writeHead(201, headers)
-  }
+  } else if (request.method === 'GET') {
+    response.writeHead(200, headers);
+    response.end(JSON.stringify(storage));
+  } 
 
 
 
@@ -72,7 +96,8 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end(JSON.stringify(headers));
+  // response.end(JSON.stringify(storage));
+  // console.log(storage.message)
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
