@@ -15,8 +15,8 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 var storage = {
   results: [],
-  username: null,
-  message: null //may need to change
+  // username: null,
+  // message: null //may need to change
 
 }
 var requestHandler = function(request, response) {
@@ -59,7 +59,7 @@ var requestHandler = function(request, response) {
     response.writeHead(200, headers);
     response.end();
   }
-
+console.log()
   if (request.url !== '/classes/messages') {
     response.writeHead(statusCode, headers);
     response.end('404: Not Found');
@@ -70,14 +70,15 @@ var requestHandler = function(request, response) {
     request.on('data', function (data){
       message+= data;
       var parsedMsg = JSON.parse(message);
-      storage.username = parsedMsg.username;
-      storage.message = parsedMsg.text;
-      storage.results.push(message);
+      // storage.username = parsedMsg.username;
+      // storage.message = parsedMsg.text;
+      storage.results.push(parsedMsg);
       // console.log('data is', data);
       // console.log('message is', message)
       // console.log('parsed?', parsedMsg.username)
       // storage.username+= data.username
-      response.end(JSON.stringify(storage));
+      response.end('Success')
+      console.log('request.postdata', request._postData);
     });
     // .writeHead() writes to the request line and headers of the response,
     // which includes the status and all headers.
@@ -85,6 +86,9 @@ var requestHandler = function(request, response) {
   } else if (request.method === 'GET') {
     response.writeHead(200, headers);
     response.end(JSON.stringify(storage));
+
+    // console.log('this is storage,', storage)
+
   } 
 
 
@@ -97,7 +101,9 @@ var requestHandler = function(request, response) {
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
   // response.end(JSON.stringify(storage));
-  // console.log(storage.message)
+  console.log(storage)
+ 
+  
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
